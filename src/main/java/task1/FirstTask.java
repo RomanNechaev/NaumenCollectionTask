@@ -32,8 +32,7 @@ public class FirstTask {
 
     public static List<User> findDuplicates(Collection<User> collA, Collection<User> collB) {
         HashSet<User> collectionFirst = new HashSet<>(collA);
-        HashSet<User> collectionSecond = new HashSet<>(collB);
-        collectionFirst.retainAll(collectionSecond);
+        collectionFirst.retainAll(collB);
         return collectionFirst.stream().toList();
     }
 }
