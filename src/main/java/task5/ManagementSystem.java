@@ -1,19 +1,13 @@
 package task5;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 /**
  * @author Nechaev Roman
  */
 public class ManagementSystem {
 
-    private final Deque<Map.Entry<Integer, FutureTask<Double>>> storage = new ArrayDeque<>();
+    private final ConcurrentLinkedDeque<Map.Entry<Integer, FutureTask<Double>>> storage = new ConcurrentLinkedDeque<>();
 
     private int id;
 
@@ -23,12 +17,12 @@ public class ManagementSystem {
         FutureTask<Double> task = new FutureTask<>(calculation);
         id++;
         printLog();
-        storage.addFirst(Map.entry(id, task));
+        storage.add(Map.entry(id, task));
         threadPoolExecutor.submit(task);
     }
 
-    public Map.Entry<Integer, FutureTask<Double>> get() throws NullPointerException, ExecutionException, InterruptedException {
-        return storage.pollLast();
+    public Map.Entry<Integer, FutureTask<Double>> get() throws NullPointerException {
+        return storage.poll();
     }
 
     public void printLog() {
