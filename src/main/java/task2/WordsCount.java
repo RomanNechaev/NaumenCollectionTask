@@ -1,8 +1,10 @@
 package task2;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.LineIterator;
+
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Nechaev Roman
@@ -11,47 +13,48 @@ import java.util.stream.Collectors;
 public class WordsCount {
     public static void main(String[] args) {
         try {
-            HashMap<String, Long> numberOfWordInfile = getNumberOfWordInFile(new BufferedReader(new FileReader("src/main/resources/Лев_Толстой_Война_и_мир_Том_1,_2,_3,_4_(UTF-8).txt")));
-            LinkedHashMap<String, Long> sortedMap = numberOfWordInfile.entrySet().stream()
-                    .sorted(Comparator.comparingLong(Map.Entry::getValue))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-            Set<Map.Entry<String, Long>> wordsSet = sortedMap.entrySet();
-            printTopTenWords(wordsSet);
-            printLastTenWords(wordsSet);
+            LinkedHashMap<String, Long> numberOfWordInfile = getNumberOfWordInFile(new File("src/main/resources/Лев_Толстой_Война_и_мир_Том_1,_2,_3,_4_(UTF-8).txt"));
+            PriorityQueue<Map.Entry<String, Long>> topTenWords = new PriorityQueue<>((x, y) -> Long.compareUnsigned(y.getValue(), x.getValue()));
+            PriorityQueue<Map.Entry<String, Long>> lastTenWords =
+                    new PriorityQueue<>(Comparator.comparingLong(Map.Entry::getValue));
+
+            for (Map.Entry<String, Long> entry : numberOfWordInfile.entrySet()) {
+                topTenWords.add(entry);
+                lastTenWords.add(entry);
+            }
+            printTopTenWords(topTenWords);
+            printLastTenWords(lastTenWords);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-
-    public static HashMap<String, Long> getNumberOfWordInFile(Reader reader) throws IOException {
-        HashMap<String, Long> numberOfWordInfile = new HashMap<>();
-        StreamTokenizer streamTokenizer = new StreamTokenizer(reader);
-        int currentToken = streamTokenizer.nextToken();
-        while (currentToken != StreamTokenizer.TT_EOF) {
-            if (streamTokenizer.sval != null) {
-                String word = deletePunctuationMarksFromWord(streamTokenizer.sval);
-                if (word.length() > 0)
-                    numberOfWordInfile.put(word, numberOfWordInfile.getOrDefault(streamTokenizer.sval, 0L) + 1);
+    public static LinkedHashMap<String, Long> getNumberOfWordInFile(File file) throws IOException {
+        LinkedHashMap<String, Long> numberOfWordInfile = new LinkedHashMap<>();
+        try (LineIterator iterator = FileUtils.lineIterator(file, "UTF-8")) {
+            while (iterator.hasNext()) {
+                String[] words = iterator.nextLine().split("\s");
+                for (String rawWord : words) {
+                    String word = deletePunctuationMarksFromWord(rawWord).toLowerCase();
+                    if (!word.equals(""))
+                        numberOfWordInfile.put(deletePunctuationMarksFromWord(word), numberOfWordInfile.getOrDefault(word, 0L) + 1);
+                }
             }
-            currentToken = streamTokenizer.nextToken();
+            return numberOfWordInfile;
         }
-        return numberOfWordInfile;
     }
 
     public static String deletePunctuationMarksFromWord(String word) {
-        return word.replaceAll("[ —.,?!;-]", "");
+        return word.replaceAll("[\\d\"'`:()| —.,?!;-]", "");
     }
 
-    private static void printTopTenWords(Set<Map.Entry<String, Long>> numberOfWord) {
+    private static void printTopTenWords(PriorityQueue<Map.Entry<String, Long>> topTenWords) {
         System.out.println("Top 10 usage word");
-        numberOfWord.stream().limit(10).forEach(System.out::println);
+        topTenWords.stream().limit(10).forEach(System.out::println);
     }
 
-    private static void printLastTenWords(Set<Map.Entry<String, Long>> numberOfWord) {
+    private static void printLastTenWords(PriorityQueue<Map.Entry<String, Long>> lastTenWords) {
         System.out.println("Last 10 usage word");
-        numberOfWord.stream().skip(Math.max(0, numberOfWord.size() - 10)).forEach(System.out::println);
+        lastTenWords.stream().limit(10).forEach(System.out::println);
     }
-
 }
-
