@@ -24,7 +24,7 @@ public class WordsCount {
     }
 
     public static Map<String, Long> getNumberOfWordInFile(File file) throws IOException {
-        Map<String, Long> numberOfWordInfile = new HashMap<>();
+        Map<String, Long> numberOfWordInfile = new LinkedHashMap<>();
         try (LineIterator iterator = FileUtils.lineIterator(file, "UTF-8")) {
             while (iterator.hasNext()) {
                 String[] words = iterator.nextLine().split("\s");
