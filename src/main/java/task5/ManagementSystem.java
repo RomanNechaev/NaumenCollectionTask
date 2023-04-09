@@ -1,5 +1,6 @@
 package task5;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.*;
 
 /**
@@ -7,7 +8,7 @@ import java.util.concurrent.*;
  */
 public class ManagementSystem {
 
-    private final ConcurrentLinkedDeque<Map.Entry<Integer, FutureTask<Double>>> storage = new ConcurrentLinkedDeque<>();
+    private final Queue<Map.Entry<Integer, FutureTask<Double>>> storage = new ConcurrentLinkedQueue<>();
 
     private int id;
 
