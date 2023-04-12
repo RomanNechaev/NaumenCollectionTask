@@ -5,7 +5,6 @@ import org.apache.commons.io.LineIterator;
 
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Nechaev Roman
@@ -15,11 +14,25 @@ public class WordsCount {
     public static void main(String[] args) {
         try {
             Map<String, Long> numberOfWordInfile = getNumberOfWordInFile(new File("src/main/resources/Лев_Толстой_Война_и_мир_Том_1,_2,_3,_4_(UTF-8).txt"));
-            Deque<Map.Entry<String, Long>> sortedWords = numberOfWordInfile.entrySet().stream().sorted(Comparator.comparingLong(Map.Entry::getValue)).collect(Collectors.toCollection(ArrayDeque::new));
-            printLastTenWords(sortedWords);
-            printTopTenWords(sortedWords);
+            Queue<Map.Entry<String,Long>> topTenWords =  new PriorityQueue<>(10, (a, b) -> Long.compare(b.getValue(), a.getValue()));
+            Queue<Map.Entry<String,Long>> lastTenWords = new PriorityQueue<>(10,Comparator.comparingLong(Map.Entry::getValue));
+
+            makeRating(topTenWords,lastTenWords,numberOfWordInfile);
+            printLastTenWords(lastTenWords);
+            printTopTenWords(topTenWords);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void makeRating(Queue<Map.Entry<String,Long>> top,Queue<Map.Entry<String,Long>> last, Map<String, Long> numberOfWordInfile) {
+        for (Map.Entry<String, Long> el : numberOfWordInfile.entrySet()) {
+            top.add(el);
+            last.add(el);
+            if(top.size()>10)
+                top.poll();
+            if(last.size()>10)
+                last.poll();
         }
     }
 
@@ -27,7 +40,7 @@ public class WordsCount {
         Map<String, Long> numberOfWordInfile = new LinkedHashMap<>();
         try (LineIterator iterator = FileUtils.lineIterator(file, "UTF-8")) {
             while (iterator.hasNext()) {
-                String[] words = iterator.nextLine().split("\s");
+                String[] words = iterator.nextLine().split(" ");
                 for (String rawWord : words) {
                     String word = deletePunctuationMarksFromWord(rawWord).toLowerCase();
                     if (!word.equals(""))
@@ -40,18 +53,17 @@ public class WordsCount {
 
     public static String deletePunctuationMarksFromWord(String word) {
         return word.replaceAll("[\\d\"'`:()| —.,?!;-]", "");
+
     }
 
-    private static void printTopTenWords(Deque<Map.Entry<String, Long>> sortedWords) {
+    private static void printTopTenWords(Queue<Map.Entry<String, Long>> sortedWords) {
         System.out.println("Top 10 usage word");
-        for (int i = 0; i < 10; i++) {
-            System.out.println(sortedWords.pollLast());
-        }
+        sortedWords.forEach(System.out::println);
 
     }
 
-    private static void printLastTenWords(Deque<Map.Entry<String, Long>> sortedWords) {
+    private static void printLastTenWords(Queue<Map.Entry<String, Long>> sortedWords) {
         System.out.println("Last 10 usage word");
-        sortedWords.stream().limit(10).forEach(System.out::println);
+        sortedWords.forEach(System.out::println);
     }
 }
